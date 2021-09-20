@@ -1,0 +1,47 @@
+Func DrawText( $nX, $nY, $nAngle, $nWidth, $nHeight, $txt, $iARGB = 0xFF000000, $fontSize = 12)
+    Local $hMatrix, $nXt, $nYt, $hBrush, $hFormat, $hFamily, $hFont, $tLayout,$x,$y
+    ; $nXt     - The X coordinate of the upper left corner of the Graphics object before rotation 
+    ; $nYt     - The Y coordinate of the upper left corner of the Graphics object before rotation
+    
+    ;Rotation Matrix
+    $hMatrix = _GDIPlus_MatrixCreate()
+    _GDIPlus_MatrixRotate($hMatrix, $nAngle, 1) 
+    _GDIPlus_GraphicsSetTransform($hGraphic , $hMatrix) 
+    
+    ;x, y display coordinates of center of height of the rectanglular text box ($height/2).
+    ;x, y increment in a circular path with radius (width of text box)/2.
+    $x = ($nWidth/2)*cos($nAngle*$nPI/180) - ($nHeight/2)*sin($nAngle*$nPI/180);Parametric equations for a circle
+    $y = ($nWidth/2)*sin($nAngle*$nPI/180) + ($nHeight/2)*cos($nAngle*$nPI/180); and adjusts for center of text box
+    
+    ;Rotation of Coordinate Axes formulae
+    ;Use $nXt, $nYt in  _GDIPlus_RectFCreate. These x, y values is the handle of the rectangular text box point
+    ; before rotation (translation of the matrix)
+    $nXt = ($nX-$x)*cos($nAngle*$nPI/180) + ($nY-$y)*sin($nAngle*$nPI/180)  ; $nXt - X coordinate before translation    
+    $nYt = -($nX-$x)*sin($nAngle*$nPI/180) + ($nY-$y)*cos($nAngle*$nPI/180) ; $nYt - Y coordinate before translation
+     
+    ; Parameters for lus_GraphicsDrawStringEx() 
+    $hBrush  = _GDIPlus_BrushCreateSolid ($iARGB)           
+    $hFormat = _GDIPlus_StringFormatCreate ()
+    $hFamily = _GDIPlus_FontFamilyCreate ("Arial")
+    ;$hFont   = _GDIPlus_FontCreate ($hFamily, 32, 1)   
+    $hFont   = _GDIPlus_FontCreate ($hFamily, $fontSize, 1)
+    $tLayout = _GDIPlus_RectFCreate ( $nXt, $nYt, $nWidth, $nHeight )
+    _GDIPlus_GraphicsDrawStringEx ($hGraphic, $txt, $hFont, $tLayout, $hFormat, $hBrush)
+    sleep(20)
+    ; Clean up resources    
+    _GDIPlus_MatrixDispose($hMatrix)
+    _GDIPlus_FontDispose ($hFont)
+    _GDIPlus_FontFamilyDispose ($hFamily)
+    _GDIPlus_StringFormatDispose ($hFormat)
+    _GDIPlus_BrushDispose ($hBrush) 
+    Return 1
+EndFunc
+
+; ================================================================= 
+; Drag Window 3 of 3 addin
+; =================================================================
+Func _WinMove($HWnd, $Command, $wParam, $lParam)    
+     If BitAND(WinGetState($HWnd), 32) Then Return $GUI_RUNDEFMSG
+    ;DllCall("user32.dll", "long", "SendMessage", "hwnd", $HWnd, "int", $WM_SYSCOMMAND, "int", 0xF009, "int", 0)
+    dllcall("user32.dll","int","SendMessage","hWnd", $HWnd, "int",$WM_NCLBUTTONDOWN,"int", $HTCAPTION,"int", 0)     
+EndFunc
